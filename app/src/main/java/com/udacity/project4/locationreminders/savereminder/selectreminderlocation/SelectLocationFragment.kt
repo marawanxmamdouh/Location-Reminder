@@ -84,7 +84,20 @@ class SelectLocationFragment : BaseFragment(), OnMapReadyCallback {
                     }
                 }
         }
+        setPoiClick(map)
         enableMyLocation()
+    }
+
+    private fun setPoiClick(map: GoogleMap) {
+        map.setOnPoiClickListener { poi ->
+            map.clear()
+            val poiMarker = map.addMarker(
+                MarkerOptions()
+                    .position(poi.latLng)
+                    .title(poi.name)
+            )
+            poiMarker?.showInfoWindow()
+        }
     }
 
     private fun onLocationSelected() {
