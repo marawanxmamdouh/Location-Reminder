@@ -89,6 +89,7 @@ class SelectLocationFragment : BaseFragment(), OnMapReadyCallback {
                 }
         }
         setPoiClick(map)
+        setMapStyle(map)
         enableMyLocation()
     }
 
@@ -101,6 +102,22 @@ class SelectLocationFragment : BaseFragment(), OnMapReadyCallback {
                     .title(poi.name)
             )
             poiMarker?.showInfoWindow()
+        }
+    }
+
+    private fun setMapStyle(map: GoogleMap) {
+        try {
+            val success = map.setMapStyle(
+                MapStyleOptions.loadRawResourceStyle(
+                    requireContext(),
+                    R.raw.my_map_style
+                )
+            )
+            if (!success) {
+                Log.e(TAG, "Style parsing failed.")
+            }
+        } catch (e: Resources.NotFoundException) {
+            Log.e(TAG, "Can't find style. Error: ", e)
         }
     }
 
