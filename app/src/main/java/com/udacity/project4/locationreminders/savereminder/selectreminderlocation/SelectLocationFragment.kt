@@ -22,8 +22,10 @@ import com.google.android.gms.maps.SupportMapFragment
 import com.google.android.gms.maps.model.LatLng
 import com.google.android.gms.maps.model.MapStyleOptions
 import com.google.android.gms.maps.model.MarkerOptions
+import com.google.android.gms.maps.model.PointOfInterest
 import com.udacity.project4.R
 import com.udacity.project4.base.BaseFragment
+import com.udacity.project4.base.NavigationCommand
 import com.udacity.project4.databinding.FragmentSelectLocationBinding
 import com.udacity.project4.locationreminders.savereminder.SaveReminderViewModel
 import com.udacity.project4.utils.setDisplayHomeAsUpEnabled
@@ -40,6 +42,11 @@ class SelectLocationFragment : BaseFragment(), OnMapReadyCallback {
     //Use Koin to get the view model of the SaveReminder
     override val _viewModel: SaveReminderViewModel by inject()
     private lateinit var binding: FragmentSelectLocationBinding
+
+    private var Poi: PointOfInterest? = null
+    private var latitude = 0.0
+    private var longitude = 0.0
+    private var name = ""
 
     override fun onCreateView(
         inflater: LayoutInflater, container: ViewGroup?, savedInstanceState: Bundle?
@@ -64,8 +71,13 @@ class SelectLocationFragment : BaseFragment(), OnMapReadyCallback {
 
 
 //        TODO: call this function after the user confirms on the selected location
-        onLocationSelected()
-
+        binding.saveLocationBtn.setOnClickListener {
+            if (Poi != null) {
+                onLocationSelected()
+            } else {
+                Toast.makeText(context, "Select a location !", Toast.LENGTH_LONG).show()
+            }
+        }
         return binding.root
     }
 
@@ -102,6 +114,10 @@ class SelectLocationFragment : BaseFragment(), OnMapReadyCallback {
                     .title(poi.name)
             )
             poiMarker?.showInfoWindow()
+            Poi = poi
+            latitude = poi.latLng.latitude
+            longitude = poi.latLng.longitude
+            name = poi.name
         }
     }
 
@@ -122,9 +138,10 @@ class SelectLocationFragment : BaseFragment(), OnMapReadyCallback {
     }
 
     private fun onLocationSelected() {
-        //        TODO: When the user confirms on the selected location,
-        //         send back the selected location details to the view model
-        //         and navigate back to the previous fragment to save the reminder and add the geofence
+        _viewModel.latitude.value = latitude
+        _viewModel.longitude.value = longitude
+        _viewModel.reminderSelectedLocationStr.value = name
+        _viewModel.navigationCommand.postValue(NavigationCommand.Back)
     }
 
 
