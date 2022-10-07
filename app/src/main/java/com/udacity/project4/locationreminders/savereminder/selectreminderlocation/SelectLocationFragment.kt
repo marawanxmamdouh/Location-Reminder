@@ -19,10 +19,7 @@ import com.google.android.gms.maps.CameraUpdateFactory
 import com.google.android.gms.maps.GoogleMap
 import com.google.android.gms.maps.OnMapReadyCallback
 import com.google.android.gms.maps.SupportMapFragment
-import com.google.android.gms.maps.model.LatLng
-import com.google.android.gms.maps.model.MapStyleOptions
-import com.google.android.gms.maps.model.MarkerOptions
-import com.google.android.gms.maps.model.PointOfInterest
+import com.google.android.gms.maps.model.*
 import com.udacity.project4.R
 import com.udacity.project4.base.BaseFragment
 import com.udacity.project4.base.NavigationCommand
@@ -30,6 +27,7 @@ import com.udacity.project4.databinding.FragmentSelectLocationBinding
 import com.udacity.project4.locationreminders.savereminder.SaveReminderViewModel
 import com.udacity.project4.utils.setDisplayHomeAsUpEnabled
 import org.koin.android.ext.android.inject
+import java.util.*
 
 const val REQUEST_LOCATION_PERMISSION = 1
 private const val TAG = "SelectLocationFragment"
@@ -47,6 +45,7 @@ class SelectLocationFragment : BaseFragment(), OnMapReadyCallback {
     private var latitude = 0.0
     private var longitude = 0.0
     private var name = ""
+    private var isLocationSelected = false
 
     override fun onCreateView(
         inflater: LayoutInflater, container: ViewGroup?, savedInstanceState: Bundle?
@@ -72,7 +71,7 @@ class SelectLocationFragment : BaseFragment(), OnMapReadyCallback {
 
 //        TODO: call this function after the user confirms on the selected location
         binding.saveLocationBtn.setOnClickListener {
-            if (Poi != null) {
+            if (Poi != null || isLocationSelected) {
                 onLocationSelected()
             } else {
                 Toast.makeText(context, "Select a location !", Toast.LENGTH_LONG).show()
@@ -100,9 +99,31 @@ class SelectLocationFragment : BaseFragment(), OnMapReadyCallback {
                     }
                 }
         }
+        setMapLongClick(map)
         setPoiClick(map)
         setMapStyle(map)
         enableMyLocation()
+    }
+
+    private fun setMapLongClick(map: GoogleMap) {
+        map.setOnMapLongClickListener { latLng ->
+            val snippet = String.format(
+                Locale.getDefault(),
+                "Lat: %1$.5f, Long: %2$.5f",
+                latLng.latitude,
+                latLng.longitude
+            )
+            map.addMarker(
+                MarkerOptions()
+                    .position(latLng)
+                    .title(getString(R.string.dropped_pin))
+                    .snippet(snippet)
+                    .icon(BitmapDescriptorFactory.defaultMarker(BitmapDescriptorFactory.HUE_RED))
+            )
+            latitude = latLng.latitude
+            longitude = latLng.longitude
+            isLocationSelected = true
+        }
     }
 
     private fun setPoiClick(map: GoogleMap) {
