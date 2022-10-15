@@ -34,16 +34,22 @@ private const val TAG = "SaveReminderFragment"
 @RequiresApi(Build.VERSION_CODES.S)
 class SaveReminderFragment : BaseFragment() {
 
+    companion object {
+        internal const val ACTION_GEOFENCE_EVENT =
+            "RemindersActivity.ACTION_GEOFENCE_EVENT"
+    }
+
     //Get the view model this time as a single to be shared with the another fragment
     override val _viewModel: SaveReminderViewModel by inject()
     private lateinit var binding: FragmentSaveReminderBinding
 
     lateinit var geofencingClient: GeofencingClient
 
-    lateinit var myContext : Context
+    lateinit var myContext: Context
 
     private val geofencePendingIntent: PendingIntent by lazy {
         val intent = Intent(requireActivity(), GeofenceBroadcastReceiver::class.java)
+        intent.action = ACTION_GEOFENCE_EVENT
         PendingIntent.getBroadcast(
             requireActivity(),
             0,
