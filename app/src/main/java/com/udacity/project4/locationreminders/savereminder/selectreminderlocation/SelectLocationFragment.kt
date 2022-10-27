@@ -224,29 +224,10 @@ class SelectLocationFragment : BaseFragment(), OnMapReadyCallback {
         if (isForegroundAndBackgroundLocationPermissionsApproved()) {
             checkDeviceLocationSettingsAndStartGeofence()
         } else {
+            Toast.makeText(context, "Location permission not granted enable it", Toast.LENGTH_LONG).show()
             requestForegroundAndBackgroundLocationPermissions()
         }
     }
-
-    /**
-     * Removes geofences. This method should be called after the user has granted the location
-     * permission.
-     */
-    /*private fun removeGeofences() {
-        if (!isForegroundAndBackgroundLocationPermissionsApproved()) {
-            return
-        }
-        geofencingClient.removeGeofences(geofencePendingIntent).run {
-            addOnSuccessListener {
-                Log.d(TAG, getString(R.string.geofences_removed))
-                Toast.makeText(applicationContext, R.string.geofences_removed, Toast.LENGTH_SHORT)
-                    .show()
-            }
-            addOnFailureListener {
-                Log.d(TAG, getString(R.string.geofences_not_removed))
-            }
-        }
-    }*/
 
     private fun checkDeviceLocationSettingsAndStartGeofence(resolve: Boolean = true) {
         val locationRequest = LocationRequest.create().apply {
