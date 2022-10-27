@@ -77,12 +77,6 @@ class SelectLocationFragment : BaseFragment(), OnMapReadyCallback {
 //        : add the map setup implementation
         fusedLocationClient = LocationServices.getFusedLocationProviderClient(requireActivity())
 
-//        : zoom to the user location after taking his permission
-//        : add style to the map
-//        : put a marker to location that the user selected
-
-
-//        : call this function after the user confirms on the selected location
         binding.saveLocationBtn.setOnClickListener {
             if (Poi != null || isLocationSelected) {
                 onLocationSelected()
@@ -364,55 +358,4 @@ class SelectLocationFragment : BaseFragment(), OnMapReadyCallback {
             checkDeviceLocationSettingsAndStartGeofence()
         }
     }
-
-    /**
-     * Request location permission, so that we can get the current location.
-     */
-
-//    private fun isPermissionGranted(): Boolean {
-//
-//        return ActivityCompat.checkSelfPermission(
-//            requireContext(),
-//            Manifest.permission.ACCESS_FINE_LOCATION
-//        ) == PackageManager.PERMISSION_GRANTED && ActivityCompat.checkSelfPermission(
-//            requireContext(),
-//            Manifest.permission.ACCESS_COARSE_LOCATION
-//        ) == PackageManager.PERMISSION_GRANTED
-//    }
-//
-//    @SuppressLint("MissingPermission")
-//    private fun enableMyLocation() {
-//        if (isPermissionGranted()) {
-//            map.isMyLocationEnabled = true
-//        } else {
-//            ActivityCompat.requestPermissions(
-//                requireActivity(),
-//                arrayOf(
-//                    "android.permission.ACCESS_COARSE_LOCATION",
-//                    "android.permission.ACCESS_FINE_LOCATION"
-//                ),
-//                REQUEST_LOCATION_PERMISSION
-//            )
-//        }
-//    }
-//
-//    override fun onRequestPermissionsResult(
-//        requestCode: Int,
-//        permissions: Array<String>,
-//        grantResults: IntArray
-//    ) {
-//        super.onRequestPermissionsResult(requestCode, permissions, grantResults)
-//
-//        val locationManager =
-//            requireActivity().getSystemService(Context.LOCATION_SERVICE) as LocationManager
-//        if (locationManager.isProviderEnabled(LocationManager.GPS_PROVIDER)) {
-//            if (requestCode == REQUEST_LOCATION_PERMISSION) {
-//                if (grantResults.isNotEmpty() && (grantResults[0] == PackageManager.PERMISSION_GRANTED)) {
-//                    enableMyLocation()
-//                }
-//            }
-//        } else {
-//            Toast.makeText(requireContext(), "Please enable GPS", Toast.LENGTH_LONG).show()
-//        }
-//    }
 }
