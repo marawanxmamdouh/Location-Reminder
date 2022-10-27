@@ -4,6 +4,7 @@ import android.Manifest
 import android.app.PendingIntent
 import android.content.Context
 import android.content.Intent
+import android.content.IntentSender
 import android.content.pm.PackageManager
 import android.os.Build
 import android.os.Bundle
@@ -15,10 +16,9 @@ import android.widget.Toast
 import androidx.annotation.RequiresApi
 import androidx.core.app.ActivityCompat
 import androidx.databinding.DataBindingUtil
-import com.google.android.gms.location.Geofence
-import com.google.android.gms.location.GeofencingClient
-import com.google.android.gms.location.GeofencingRequest
-import com.google.android.gms.location.LocationServices
+import com.google.android.gms.common.api.ResolvableApiException
+import com.google.android.gms.location.*
+import com.google.android.material.snackbar.Snackbar
 import com.udacity.project4.R
 import com.udacity.project4.base.BaseFragment
 import com.udacity.project4.base.NavigationCommand
@@ -103,8 +103,49 @@ class SaveReminderFragment : BaseFragment() {
 //            : use the user entered reminder details to:
 //             1) add a geofencing request
 //             2) save the reminder to the local db
-            addGeofence(latitude ?: 0.0, longitude ?: 0.0, title ?: "")
-            _viewModel.validateAndSaveReminder(reminderDataItem)
+            checkDeviceLocationSettingsAndStartGeofence(reminderDataItem)
+        }
+    }
+
+    private fun checkDeviceLocationSettingsAndStartGeofence(
+        reminderDataItem: ReminderDataItem,
+        resolve: Boolean = true
+    ) {
+        val locationRequest = com.google.android.gms.location.LocationRequest.create().apply {
+            priority = Priority.PRIORITY_LOW_POWER
+        }
+        val builder = LocationSettingsRequest.Builder().addLocationRequest(locationRequest)
+        val settingsClient = LocationServices.getSettingsClient(requireActivity())
+        val locationSettingsResponseTask =
+            settingsClient.checkLocationSettings(builder.build())
+        locationSettingsResponseTask.addOnFailureListener { exception ->
+            if (exception is ResolvableApiException && resolve) {
+                try {
+                    exception.startResolutionForResult(
+                        this.requireActivity(),
+                        0
+                    )
+                } catch (sendEx: IntentSender.SendIntentException) {
+                    Log.d(TAG, "Error getting location settings resolution: " + sendEx.message)
+                }
+            } else {
+                Snackbar.make(
+                    binding.root,
+                    R.string.location_required_error, Snackbar.LENGTH_INDEFINITE
+                ).setAction(android.R.string.ok) {
+                    checkDeviceLocationSettingsAndStartGeofence(reminderDataItem)
+                }.show()
+            }
+        }
+        locationSettingsResponseTask.addOnCompleteListener {
+            if (it.isSuccessful) {
+                addGeofence(
+                    reminderDataItem.latitude ?: 0.0,
+                    reminderDataItem.longitude ?: 0.0,
+                    reminderDataItem.title ?: ""
+                )
+                _viewModel.validateAndSaveReminder(reminderDataItem)
+            }
         }
     }
 
