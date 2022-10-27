@@ -100,20 +100,26 @@ class SelectLocationFragment : BaseFragment(), OnMapReadyCallback {
 
         // gets the user's current location
         if (isForegroundAndBackgroundLocationPermissionsApproved()) {
+            map.isMyLocationEnabled = true
             fusedLocationClient.lastLocation
                 .addOnSuccessListener { location: Location? ->
                     if (location != null) {
-                        val currentLocation = LatLng(location.latitude, location.longitude)
                         Log.i(
                             TAG,
                             "onMapReady (line 93): latitude: ${location.latitude} longitude: ${location.longitude}"
                         )
                         map.addMarker(
-                            MarkerOptions().position(currentLocation)
+                            MarkerOptions().position(LatLng(location.latitude, location.longitude))
                                 .title("Marker in Current Location")
                         )
-                        map.moveCamera(CameraUpdateFactory.newLatLngZoom(currentLocation, 15f))
-                        map.animateCamera(CameraUpdateFactory.newLatLngZoom(currentLocation, 15f))
+                        map.animateCamera(
+                            CameraUpdateFactory.newLatLngZoom(
+                                LatLng(
+                                    location.latitude,
+                                    location.longitude
+                                ), 14f
+                            )
+                        )
                     }
                 }
         }
@@ -224,7 +230,8 @@ class SelectLocationFragment : BaseFragment(), OnMapReadyCallback {
         if (isForegroundAndBackgroundLocationPermissionsApproved()) {
             checkDeviceLocationSettingsAndStartGeofence()
         } else {
-            Toast.makeText(context, "Location permission not granted enable it", Toast.LENGTH_LONG).show()
+            Toast.makeText(context, "Location permission not granted enable it", Toast.LENGTH_LONG)
+                .show()
             requestForegroundAndBackgroundLocationPermissions()
         }
     }
