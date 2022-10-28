@@ -1,20 +1,16 @@
 package com.udacity.project4.locationreminders.savereminder
 
-import android.Manifest
 import android.app.PendingIntent
 import android.content.Context
 import android.content.Intent
 import android.content.IntentSender
-import android.content.pm.PackageManager
 import android.os.Build
 import android.os.Bundle
 import android.util.Log
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
-import android.widget.Toast
 import androidx.annotation.RequiresApi
-import androidx.core.app.ActivityCompat
 import androidx.databinding.DataBindingUtil
 import com.google.android.gms.common.api.ResolvableApiException
 import com.google.android.gms.location.*
@@ -27,7 +23,6 @@ import com.udacity.project4.locationreminders.geofence.GeofenceBroadcastReceiver
 import com.udacity.project4.locationreminders.reminderslist.ReminderDataItem
 import com.udacity.project4.utils.setDisplayHomeAsUpEnabled
 import org.koin.android.ext.android.inject
-
 
 private const val TAG = "SaveReminderFragment"
 
@@ -167,37 +162,6 @@ class SaveReminderFragment : BaseFragment() {
             .build()
 
         Log.i(TAG, "addGeofence (line 115): $geofencingRequest")
-        geofencingClient.removeGeofences(geofencePendingIntent).run {
-            addOnCompleteListener {
-                if (ActivityCompat.checkSelfPermission(
-                        myContext,
-                        Manifest.permission.ACCESS_FINE_LOCATION
-                    ) != PackageManager.PERMISSION_GRANTED
-                ) {
-//                    requestForegroundAndBackgroundLocationPermissions()
-                }
-                geofencingClient.addGeofences(geofencingRequest, geofencePendingIntent).run {
-                    addOnSuccessListener {
-                        Log.i(TAG, "addGeofence (line 129): Geofence added")
-                        Toast.makeText(
-                            myContext, R.string.geofences_added,
-                            Toast.LENGTH_SHORT
-                        ).show()
-
-                        Log.i("Add Geofence", geofence.requestId)
-                    }
-                    addOnFailureListener {
-                        Toast.makeText(
-                            myContext, R.string.geofences_not_added,
-                            Toast.LENGTH_SHORT
-                        ).show()
-                        if ((it.message != null)) {
-                            Log.i(TAG, "addGeofence (line 140):  $it")
-                        }
-                    }
-                }
-            }
-        }
     }
 
     override fun onDestroy() {
