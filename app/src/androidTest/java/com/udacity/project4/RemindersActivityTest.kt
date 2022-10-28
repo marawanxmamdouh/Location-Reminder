@@ -22,6 +22,7 @@ import com.udacity.project4.locationreminders.savereminder.SaveReminderViewModel
 import com.udacity.project4.util.DataBindingIdlingResource
 import com.udacity.project4.util.monitorActivity
 import kotlinx.coroutines.runBlocking
+import org.hamcrest.CoreMatchers.`is`
 import org.hamcrest.CoreMatchers.not
 import org.junit.After
 import org.junit.Before
@@ -128,26 +129,22 @@ class RemindersActivityTest :
         dbIdlingResource.monitorActivity(activityScenario)
 
         onView(withId(R.id.addReminderFAB)).perform(click())
-        onView(withId(R.id.reminderTitle)).perform(typeText("test string"))
-        closeSoftKeyboard()
+        onView(withId(R.id.reminderTitle)).perform(typeText("TITLE1"), closeSoftKeyboard())
+        onView(withId(R.id.reminderDescription)).perform(typeText("DESC1"), closeSoftKeyboard())
         onView(withId(R.id.selectLocation)).perform(click())
+
         onView(withId(R.id.map)).perform(longClick())
         onView(withId(R.id.saveLocationBtn)).perform(click())
         onView(withId(R.id.saveReminder)).perform(click())
 
-        onView(withText(R.string.reminder_saved)).inRoot(
-            withDecorView(
-                not(
-                    getActivity(
-                        activityScenario
-                    ).window?.decorView
+
+        onView(withText(R.string.reminder_saved)).inRoot(withDecorView(not(`is`(getActivity(activityScenario).window?.decorView))))
+            .check(
+                matches(
+                    isDisplayed()
                 )
             )
-        ).check(
-            matches(
-                isDisplayed()
-            )
-        )
+
         activityScenario.close()
     }
 
