@@ -140,6 +140,12 @@ class SelectLocationFragment : BaseFragment(), OnMapReadyCallback {
             )
             latitude = latLng.latitude
             longitude = latLng.longitude
+            name = String.format(
+                Locale.getDefault(),
+                "Lat: %1$.5f, Long: %2$.5f",
+                latLng.latitude,
+                latLng.longitude
+            )
             isLocationSelected = true
         }
     }
