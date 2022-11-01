@@ -64,14 +64,6 @@ class RemindersListViewModelTest {
         stopKoin()
     }
 
-//    @Before
-//    fun setUpViewModel() {
-//        stopKoin()
-//        fakeDataSource = FakeDataSource()
-//        reminderListViewModel =
-//            RemindersListViewModel(ApplicationProvider.getApplicationContext(), fakeDataSource)
-//    }
-
     // Delete all reminders after each test
     @After
     fun clearDataSource() = runTest {
@@ -96,7 +88,6 @@ class RemindersListViewModelTest {
 
     }
 
-
     /**In this function we test to retrieve the 3 reminders we're inserting**/
     @Test
     fun loadReminders_loadsThreeReminders() = mainCoroutineRule.runBlockingTest {
@@ -110,16 +101,13 @@ class RemindersListViewModelTest {
         fakeDataSource.saveReminder(reminder2)
         fakeDataSource.saveReminder(reminder3)
 
-
         //WHEN - We try to load Reminders
         reminderListViewModel.loadReminders()
 
         //THEN - We expect to have only 3 reminders in remindersList and showNoData is false cause we have data
         assertThat(reminderListViewModel.remindersList.getOrAwaitValue().size, `is`(3))
         assertThat(reminderListViewModel.showNoData.getOrAwaitValue(), `is`(false))
-
     }
-
 
     /**Here in this test we testing checkLoading*/
     @Test
@@ -146,11 +134,8 @@ class RemindersListViewModelTest {
 
         // Then loading indicator is hidden
         assertThat(reminderListViewModel.showLoading.getOrAwaitValue(), `is`(false))
-
     }
 
-
-    /**Here in this test we testing showing an Error*/
 
     @Test
     fun loadReminders_shouldReturnError() = mainCoroutineRule.runTest {
