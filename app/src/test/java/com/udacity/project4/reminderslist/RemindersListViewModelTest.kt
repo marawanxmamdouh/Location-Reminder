@@ -20,7 +20,7 @@ import org.koin.core.context.stopKoin
 
 @RunWith(AndroidJUnit4::class)
 @ExperimentalCoroutinesApi
-class RemindersListViewModelTest {
+class ReminderListViewModelTest {
 
     @get:Rule
     var instantExecutorRule = InstantTaskExecutorRule()
