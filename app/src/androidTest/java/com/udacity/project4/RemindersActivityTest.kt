@@ -19,9 +19,8 @@ import com.udacity.project4.locationreminders.reminderslist.RemindersListViewMod
 import com.udacity.project4.locationreminders.savereminder.SaveReminderViewModel
 import com.udacity.project4.util.DataBindingIdlingResource
 import com.udacity.project4.util.monitorActivity
+import com.udacity.project4.utils.EspressoIdlingResource
 import kotlinx.coroutines.runBlocking
-import org.hamcrest.CoreMatchers.`is`
-import org.hamcrest.CoreMatchers.not
 import org.junit.After
 import org.junit.Before
 import org.junit.Test
@@ -111,8 +110,7 @@ class RemindersActivityTest :
         dbIdlingResource.monitorActivity(activityScenario)
 
         onView(withId(R.id.addReminderFAB)).perform(click())
-        onView(withId(R.id.reminderTitle)).perform(typeText("test string"))
-        closeSoftKeyboard()
+        onView(withId(R.id.reminderTitle)).perform(replaceText("test string"), closeSoftKeyboard())
         onView(withId(R.id.saveReminder)).perform(click())
 
         val snackBarMessage = appContext.getString(R.string.err_select_location)
@@ -138,13 +136,5 @@ class RemindersActivityTest :
         onView(withText("Reminder Saved !")).inRoot(ToastMatcher().apply { matches(isDisplayed()) })
 
         activityScenario.close()
-    }
-
-    private fun getActivity(activityScenario: ActivityScenario<RemindersActivity>): Activity {
-        lateinit var activity: Activity
-        activityScenario.onActivity {
-            activity = it
-        }
-        return activity
     }
 }
