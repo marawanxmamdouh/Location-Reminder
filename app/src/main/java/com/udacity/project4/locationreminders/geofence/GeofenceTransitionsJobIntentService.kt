@@ -2,6 +2,7 @@ package com.udacity.project4.locationreminders.geofence
 
 import android.content.Context
 import android.content.Intent
+import android.util.Log
 import androidx.core.app.JobIntentService
 import com.google.android.gms.location.Geofence
 import com.google.android.gms.location.GeofencingEvent
@@ -35,6 +36,7 @@ class GeofenceTransitionsJobIntentService : JobIntentService(), CoroutineScope {
     }
 
     override fun onHandleWork(intent: Intent) {
+        Log.i(TAG, "onHandleWork (line 32): onHandleWork called")
         val geofencingEvent = GeofencingEvent.fromIntent(intent)
         val geofenceList: List<Geofence> =
             geofencingEvent?.triggeringGeofences as List<Geofence>
@@ -47,7 +49,7 @@ class GeofenceTransitionsJobIntentService : JobIntentService(), CoroutineScope {
         triggeringGeofences.forEach {
             requestId = it.requestId
         }
-
+        Log.i(TAG, "sendNotification (line 48): requestId: $requestId")
         //Get the local repository instance
         val remindersLocalRepository: ReminderDataSource by inject()
 //        Interaction to the repository has to be through a coroutine scope

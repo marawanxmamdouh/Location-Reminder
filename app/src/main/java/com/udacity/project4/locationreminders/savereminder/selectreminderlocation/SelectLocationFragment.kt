@@ -125,6 +125,7 @@ class SelectLocationFragment : BaseFragment(), OnMapReadyCallback {
 
     private fun setMapLongClick(map: GoogleMap) {
         map.setOnMapLongClickListener { latLng ->
+            map.clear()
             val snippet = String.format(
                 Locale.getDefault(),
                 "Lat: %1$.5f, Long: %2$.5f",
@@ -216,7 +217,7 @@ class SelectLocationFragment : BaseFragment(), OnMapReadyCallback {
     }
 
     /**
-     * Starts the permission check and Geofence process only if the Geofence associated with the
+     * Starts the permission check process only if the associated with the
      * current hint isn't yet active.
      */
     @RequiresApi(Build.VERSION_CODES.Q)
@@ -228,7 +229,7 @@ class SelectLocationFragment : BaseFragment(), OnMapReadyCallback {
     @RequiresApi(Build.VERSION_CODES.Q)
     private fun checkPermissionsAndStartGeofencing() {
         if (isForegroundAndBackgroundLocationPermissionsApproved()) {
-            checkDeviceLocationSettingsAndStartGeofence()
+            checkDeviceLocationSettings()
         } else {
             Toast.makeText(context, "Location permission not granted enable it", Toast.LENGTH_LONG)
                 .show()
@@ -236,7 +237,8 @@ class SelectLocationFragment : BaseFragment(), OnMapReadyCallback {
         }
     }
 
-    private fun checkDeviceLocationSettingsAndStartGeofence(resolve: Boolean = true) {
+    private fun checkDeviceLocationSettings(resolve: Boolean = true) {
+        Log.i(TAG, "checkDeviceLocationSettings (line 240): called")
         val locationRequest = LocationRequest.create().apply {
             priority = Priority.PRIORITY_LOW_POWER
         }
@@ -259,7 +261,7 @@ class SelectLocationFragment : BaseFragment(), OnMapReadyCallback {
                     binding.map,
                     R.string.location_required_error, Snackbar.LENGTH_INDEFINITE
                 ).setAction(android.R.string.ok) {
-                    checkDeviceLocationSettingsAndStartGeofence()
+                    checkDeviceLocationSettings()
                 }.show()
             }
         }
@@ -361,7 +363,7 @@ class SelectLocationFragment : BaseFragment(), OnMapReadyCallback {
                     })
                 }.show()
         } else {
-            checkDeviceLocationSettingsAndStartGeofence()
+            checkDeviceLocationSettings()
         }
     }
 }
