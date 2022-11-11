@@ -2,15 +2,12 @@ package com.udacity.project4.locationreminders.savereminder.selectreminderlocati
 
 import android.Manifest
 import android.annotation.SuppressLint
-import android.content.Intent
 import android.content.IntentSender
 import android.content.pm.PackageManager
 import android.content.res.Resources
 import android.location.Location
-import android.net.Uri
 import android.os.Build
 import android.os.Bundle
-import android.provider.Settings
 import android.util.Log
 import android.view.*
 import android.widget.Toast
@@ -25,7 +22,6 @@ import com.google.android.gms.maps.OnMapReadyCallback
 import com.google.android.gms.maps.SupportMapFragment
 import com.google.android.gms.maps.model.*
 import com.google.android.material.snackbar.Snackbar
-import com.udacity.project4.BuildConfig
 import com.udacity.project4.R
 import com.udacity.project4.base.BaseFragment
 import com.udacity.project4.base.NavigationCommand
@@ -35,17 +31,12 @@ import com.udacity.project4.utils.setDisplayHomeAsUpEnabled
 import org.koin.android.ext.android.inject
 import java.util.*
 
-const val REQUEST_LOCATION_PERMISSION = 1
 private const val TAG = "SelectLocationFragment"
-private const val REQUEST_FOREGROUND_AND_BACKGROUND_PERMISSION_RESULT_CODE = 33
 private const val REQUEST_FOREGROUND_ONLY_PERMISSIONS_REQUEST_CODE = 34
 private const val LOCATION_PERMISSION_INDEX = 0
-private const val BACKGROUND_LOCATION_PERMISSION_INDEX = 1
 private const val REQUEST_TURN_DEVICE_LOCATION_ON = 29
 
 class SelectLocationFragment : BaseFragment(), OnMapReadyCallback {
-
-    private val runningQOrLater = Build.VERSION.SDK_INT >= Build.VERSION_CODES.Q
 
     private lateinit var map: GoogleMap
     private lateinit var fusedLocationClient: FusedLocationProviderClient
@@ -88,12 +79,20 @@ class SelectLocationFragment : BaseFragment(), OnMapReadyCallback {
     }
 
     @RequiresApi(Build.VERSION_CODES.Q)
-    @SuppressLint("MissingPermission")
     override fun onMapReady(googleMap: GoogleMap) {
         map = googleMap
 
         // gets the user's current location
-        if (isForegroundAndBackgroundLocationPermissionsApproved()) {
+        zoomToUserLocation()
+        setMapLongClick(map)
+        setPoiClick(map)
+        setMapStyle(map)
+        requestForegroundLocationPermissions()
+    }
+
+    @SuppressLint("MissingPermission")
+    private fun zoomToUserLocation() {
+        if (isForegroundLocationPermissionsApproved()) {
             map.isMyLocationEnabled = true
             fusedLocationClient.lastLocation
                 .addOnSuccessListener { location: Location? ->
@@ -101,10 +100,6 @@ class SelectLocationFragment : BaseFragment(), OnMapReadyCallback {
                         Log.i(
                             TAG,
                             "onMapReady (line 93): latitude: ${location.latitude} longitude: ${location.longitude}"
-                        )
-                        map.addMarker(
-                            MarkerOptions().position(LatLng(location.latitude, location.longitude))
-                                .title("Marker in Current Location")
                         )
                         map.animateCamera(
                             CameraUpdateFactory.newLatLngZoom(
@@ -114,13 +109,13 @@ class SelectLocationFragment : BaseFragment(), OnMapReadyCallback {
                                 ), 14f
                             )
                         )
+                        map.addMarker(
+                            MarkerOptions().position(LatLng(location.latitude, location.longitude))
+                                .title("Marker in Current Location")
+                        )
                     }
                 }
         }
-        setMapLongClick(map)
-        setPoiClick(map)
-        setMapStyle(map)
-        requestForegroundAndBackgroundLocationPermissions()
     }
 
     private fun setMapLongClick(map: GoogleMap) {
@@ -223,17 +218,16 @@ class SelectLocationFragment : BaseFragment(), OnMapReadyCallback {
     @RequiresApi(Build.VERSION_CODES.Q)
     override fun onStart() {
         super.onStart()
-        checkPermissionsAndStartGeofencing()
+        checkPermissions()
     }
 
     @RequiresApi(Build.VERSION_CODES.Q)
-    private fun checkPermissionsAndStartGeofencing() {
-        if (isForegroundAndBackgroundLocationPermissionsApproved()) {
-            checkDeviceLocationSettings()
-        } else {
+    private fun checkPermissions() {
+        checkDeviceLocationSettings()
+        if (!isForegroundLocationPermissionsApproved()) {
             Toast.makeText(context, "Location permission not granted enable it", Toast.LENGTH_LONG)
                 .show()
-            requestForegroundAndBackgroundLocationPermissions()
+            requestForegroundLocationPermissions()
         }
     }
 
@@ -267,14 +261,7 @@ class SelectLocationFragment : BaseFragment(), OnMapReadyCallback {
         }
         locationSettingsResponseTask.addOnCompleteListener {
             if (it.isSuccessful) {
-                ActivityCompat.requestPermissions(
-                    requireActivity(),
-                    arrayOf(
-                        "android.permission.ACCESS_COARSE_LOCATION",
-                        "android.permission.ACCESS_FINE_LOCATION"
-                    ),
-                    REQUEST_LOCATION_PERMISSION
-                )
+                zoomToUserLocation()
             }
         }
     }
@@ -282,57 +269,29 @@ class SelectLocationFragment : BaseFragment(), OnMapReadyCallback {
     /**
      * Request Permissions
      */
-    private fun isForegroundAndBackgroundLocationPermissionsApproved(): Boolean {
-        val isForegroundLocationApproved = (
+    private fun isForegroundLocationPermissionsApproved(): Boolean {
+        return (
                 PackageManager.PERMISSION_GRANTED ==
                         ActivityCompat.checkSelfPermission(
                             requireContext(),
                             Manifest.permission.ACCESS_FINE_LOCATION
                         ))
-        val isBackgroundPermissionApproved =
-            if (runningQOrLater) {
-                PackageManager.PERMISSION_GRANTED ==
-                        ActivityCompat.checkSelfPermission(
-                            requireContext(), Manifest.permission.ACCESS_BACKGROUND_LOCATION
-                        )
-            } else {
-                true
-            }
-        return isForegroundLocationApproved && isBackgroundPermissionApproved
     }
 
-    @RequiresApi(Build.VERSION_CODES.Q)
     @SuppressLint("MissingPermission")
-    private fun requestForegroundAndBackgroundLocationPermissions() {
-        if (isForegroundAndBackgroundLocationPermissionsApproved()) {
+    private fun requestForegroundLocationPermissions() {
+        if (isForegroundLocationPermissionsApproved()) {
             map.isMyLocationEnabled = true
             return
         }
-        var permissionsArray = arrayOf(
-            Manifest.permission.ACCESS_COARSE_LOCATION,
-            Manifest.permission.ACCESS_FINE_LOCATION
-        )
-        val resultCode = when {
-            runningQOrLater -> {
-                permissionsArray += Manifest.permission.ACCESS_BACKGROUND_LOCATION
-                Toast.makeText(
-                    requireContext(),
-                    "Android 10+ requires location permission in background too.",
-                    Toast.LENGTH_LONG
-                ).show()
-                REQUEST_FOREGROUND_AND_BACKGROUND_PERMISSION_RESULT_CODE
-            }
-            else -> REQUEST_FOREGROUND_ONLY_PERMISSIONS_REQUEST_CODE
-        }
+
         Log.d(TAG, "Request foreground only location permission")
 
-        ActivityCompat.requestPermissions(
-            requireActivity(),
+        requestPermissions(
             arrayOf(
                 "android.permission.ACCESS_COARSE_LOCATION",
                 "android.permission.ACCESS_FINE_LOCATION"
-            ),
-            resultCode
+            ), REQUEST_FOREGROUND_ONLY_PERMISSIONS_REQUEST_CODE
         )
     }
 
@@ -342,28 +301,23 @@ class SelectLocationFragment : BaseFragment(), OnMapReadyCallback {
         grantResults: IntArray
     ) {
         super.onRequestPermissionsResult(requestCode, permissions, grantResults)
-        Log.d(TAG, "onRequestPermissionResult")
-        if (
-            grantResults.isEmpty() ||
-            grantResults[LOCATION_PERMISSION_INDEX] == PackageManager.PERMISSION_DENIED ||
-            (requestCode == REQUEST_FOREGROUND_AND_BACKGROUND_PERMISSION_RESULT_CODE &&
-                    grantResults[BACKGROUND_LOCATION_PERMISSION_INDEX] ==
-                    PackageManager.PERMISSION_DENIED)
-        ) {
-            Snackbar.make(
-                binding.map,
-                R.string.permission_denied_explanation,
-                Snackbar.LENGTH_INDEFINITE
-            )
-                .setAction(R.string.settings) {
-                    startActivity(Intent().apply {
-                        action = Settings.ACTION_APPLICATION_DETAILS_SETTINGS
-                        data = Uri.fromParts("package", BuildConfig.APPLICATION_ID, null)
-                        flags = Intent.FLAG_ACTIVITY_NEW_TASK
-                    })
-                }.show()
-        } else {
-            checkDeviceLocationSettings()
+        if (requestCode == REQUEST_FOREGROUND_ONLY_PERMISSIONS_REQUEST_CODE) {
+            if (
+                grantResults.isNotEmpty() &&
+                grantResults[LOCATION_PERMISSION_INDEX] == PackageManager.PERMISSION_GRANTED
+            ) {
+                // Permission granted
+                Log.i(TAG, "onRequestPermissionsResult (line 383): permission granted")
+                zoomToUserLocation()
+            } else {
+                // Permission was denied. Display an error message.
+                Log.i(TAG, "onRequestPermissionsResult (line 397): permission denied")
+                Toast.makeText(
+                    requireContext(),
+                    R.string.permission_denied_explanation,
+                    Toast.LENGTH_LONG
+                ).show()
+            }
         }
     }
 }
