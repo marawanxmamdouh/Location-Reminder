@@ -10,6 +10,7 @@ import com.udacity.project4.locationreminders.data.dto.ReminderDTO
 import com.udacity.project4.locationreminders.reminderslist.RemindersListViewModel
 import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.test.pauseDispatcher
+import kotlinx.coroutines.test.resumeDispatcher
 import org.hamcrest.CoreMatchers.`is`
 import org.junit.After
 import org.junit.Assert.assertThat
@@ -17,8 +18,6 @@ import org.junit.Rule
 import org.junit.Test
 import org.junit.runner.RunWith
 import org.koin.core.context.stopKoin
-import com.udacity.project4.R
-import kotlinx.coroutines.test.resumeDispatcher
 
 @ExperimentalCoroutinesApi
 @RunWith(AndroidJUnit4::class)
@@ -94,7 +93,7 @@ class SaveReminderViewModelTest {
         reminderListViewModel =
             RemindersListViewModel(ApplicationProvider.getApplicationContext(), fakeDataSource)
         reminderListViewModel.loadReminders()
-        assertThat(reminderListViewModel.showSnackBar, `is`("No reminders found"))
+        assertThat(reminderListViewModel.showSnackBar.value, `is`("Reminders not found"))
     }
 
 }
