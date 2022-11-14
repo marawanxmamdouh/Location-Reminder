@@ -5,6 +5,7 @@ import androidx.test.core.app.ApplicationProvider
 import androidx.test.ext.junit.runners.AndroidJUnit4
 import com.udacity.project4.MainCoroutineRule
 import com.udacity.project4.data.FakeDataSource
+import com.udacity.project4.getOrAwaitValue
 import com.udacity.project4.locationreminders.data.dto.ReminderDTO
 import com.udacity.project4.locationreminders.reminderslist.RemindersListViewModel
 import kotlinx.coroutines.ExperimentalCoroutinesApi
@@ -16,6 +17,8 @@ import org.junit.Rule
 import org.junit.Test
 import org.junit.runner.RunWith
 import org.koin.core.context.stopKoin
+import com.udacity.project4.R
+import kotlinx.coroutines.test.resumeDispatcher
 
 @ExperimentalCoroutinesApi
 @RunWith(AndroidJUnit4::class)
@@ -75,12 +78,14 @@ class SaveReminderViewModelTest {
 
     @Test
     fun check_loading() {
-        fakeDataSource = FakeDataSource(mutableListOf())
+        fakeDataSource = FakeDataSource()
         reminderListViewModel =
             RemindersListViewModel(ApplicationProvider.getApplicationContext(), fakeDataSource)
         mainCoroutineRule.pauseDispatcher()
         reminderListViewModel.loadReminders()
-        assertThat(reminderListViewModel.showLoading, `is`(true))
+        assertThat(reminderListViewModel.showLoading.getOrAwaitValue(), `is`(true))
+        mainCoroutineRule.resumeDispatcher()
+        assertThat(reminderListViewModel.showLoading.getOrAwaitValue(), `is`(false))
     }
 
     @Test
