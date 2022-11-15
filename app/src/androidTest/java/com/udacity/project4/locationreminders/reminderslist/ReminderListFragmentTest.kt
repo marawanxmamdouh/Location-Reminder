@@ -6,7 +6,7 @@ import androidx.arch.core.executor.testing.InstantTaskExecutorRule
 import androidx.fragment.app.testing.launchFragmentInContainer
 import androidx.navigation.NavController
 import androidx.navigation.Navigation
-import androidx.test.core.app.ApplicationProvider
+import androidx.test.core.app.ApplicationProvider.getApplicationContext
 import androidx.test.espresso.Espresso.onView
 import androidx.test.espresso.action.ViewActions.click
 import androidx.test.espresso.assertion.ViewAssertions.matches
@@ -15,18 +15,16 @@ import androidx.test.ext.junit.runners.AndroidJUnit4
 import androidx.test.filters.MediumTest
 import com.udacity.project4.R
 import com.udacity.project4.data.FakeDataSource
+import com.udacity.project4.locationreminders.data.ReminderDataSource
 import com.udacity.project4.locationreminders.data.dto.ReminderDTO
-import com.udacity.project4.locationreminders.data.local.LocalDB
-import com.udacity.project4.locationreminders.savereminder.SaveReminderViewModel
 import kotlinx.coroutines.ExperimentalCoroutinesApi
-import kotlinx.coroutines.runBlocking
 import kotlinx.coroutines.test.runTest
 import org.junit.Before
 import org.junit.Rule
 import org.junit.Test
 import org.junit.runner.RunWith
+import org.koin.android.ext.koin.androidContext
 import org.koin.androidx.viewmodel.dsl.viewModel
-import org.koin.core.context.GlobalContext.get
 import org.koin.core.context.startKoin
 import org.koin.core.context.stopKoin
 import org.koin.dsl.module
@@ -38,49 +36,65 @@ import org.mockito.Mockito.verify
 //UI Testing
 @MediumTest
 class ReminderListFragmentTest {
-    //    : test the navigation of the fragments.
-//    : test the displayed data on the UI.
-//    : add testing for the error messages.
+
     @get:Rule
     val instantExecutor = InstantTaskExecutorRule()
 
-    private lateinit var repository: FakeDataSource
+    private lateinit var repository: ReminderDataSource
     private lateinit var applicationContext: Application
+
+    private val remindersList = listOf(
+        ReminderDTO(
+            "Random title",
+            "Random description",
+            "Random location",
+            10.44206,
+            81.58948
+        ),
+        ReminderDTO(
+            "Random title",
+            "Random description",
+            "Random location",
+            44.78961,
+            -138.08021
+        ),
+        ReminderDTO(
+            "Random title",
+            "Random description",
+            "Random location",
+            -9.49210,
+            -124.72571
+        )
+    )
+
+    private val reminder1 = remindersList[0]
+    private val reminder2 = remindersList[1]
+    private val reminder3 = remindersList[2]
 
     @Before
     fun init() {
         stopKoin()
-        applicationContext = ApplicationProvider.getApplicationContext()
         val myModule = module {
             viewModel {
                 RemindersListViewModel(
-                    applicationContext,
-                    get() as FakeDataSource
+                    get(),
+                    get()
                 )
             }
             single {
-                SaveReminderViewModel(
-                    applicationContext,
-                    get() as FakeDataSource
-                )
+                FakeDataSource() as ReminderDataSource
             }
-            single { FakeDataSource() }
-            single { LocalDB.createRemindersDao(applicationContext) }
         }
 
         startKoin {
+            androidContext(getApplicationContext())
             modules(listOf(myModule))
-        }
-
-        repository = get() as FakeDataSource
-
-        runBlocking {
-            repository.deleteAllReminders()
         }
     }
 
     @Test
     fun checkRemindersDisplayed() = runTest {
+        repository = FakeDataSource(mutableListOf())
         val reminder1 = ReminderDTO(
             "Random title",
             "Random description",
@@ -93,11 +107,12 @@ class ReminderListFragmentTest {
         launchFragmentInContainer<ReminderListFragment>(Bundle(), R.style.AppTheme)
 
         onView(withId(R.id.reminderssRecyclerView))
-            .check(matches(hasDescendant(withText("Random title"))))
+            .check(matches(isDisplayed()))
     }
 
     @Test
     fun checkNoReminders_DisplaysNoData() = runTest {
+        repository = FakeDataSource()
         repository.deleteAllReminders()
 
         launchFragmentInContainer<ReminderListFragment>(Bundle(), R.style.AppTheme)
